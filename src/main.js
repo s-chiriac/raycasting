@@ -260,26 +260,27 @@ function gameLoop() {
   }
 }
 
-function updateDirection(event, direction, value) {
-  direction = value;
-
-  event.preventDefault();
-  event.stopPropagation();
-}
-
 document.addEventListener('keydown', (event) => {
   switch (event.keyCode) {
     case 37:
-      updateDirection(event, left, true);
+      left = true;
+      event.preventDefault();
+      event.stopPropagation();
       break;
     case 39:
-      updateDirection(event, right, true);
+      right = true;
+      event.preventDefault();
+      event.stopPropagation();
       break;
     case 38:
-      updateDirection(event, up, true);
+      up = true;
+      event.preventDefault();
+      event.stopPropagation();
       break;
     case 40:
-      updateDirection(event, down, true);
+      down = true;
+      event.preventDefault();
+      event.stopPropagation();
       break;
   }
 });
@@ -287,16 +288,24 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keyup', (event) => {
   switch (event.keyCode) {
     case 37:
-      updateDirection(event, left, false);
+      left = false;
+      event.preventDefault();
+      event.stopPropagation();
       break;
     case 39:
-      updateDirection(event, right, false);
+      right = false;
+      event.preventDefault();
+      event.stopPropagation();
       break;
     case 38:
-      updateDirection(event, up, false);
+      up = false;
+      event.preventDefault();
+      event.stopPropagation();
       break;
     case 40:
-      updateDirection(event, down, false);
+      down = false;
+      event.preventDefault();
+      event.stopPropagation();
       break;
   }
 });
