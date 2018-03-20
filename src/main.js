@@ -37,8 +37,8 @@ const LEVEL_1_MAP = [
  * @type {{WIDTH: number, HEIGHT: number}}
  */
 const RESOLUTION = {
-  WIDTH: 160,
-  HEIGHT: 90
+  WIDTH: 1920,
+  HEIGHT: 1080
 };
 
 // Canvas and canvas context
