@@ -38,7 +38,12 @@ const LEVEL_1_MAP = [
  */
 const RESOLUTION = {
   WIDTH: 1920,
-  HEIGHT: 1080
+  HEIGHT: 1080,
+};
+
+const GAME_STATES = {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
 };
 
 // Canvas and canvas context
@@ -49,7 +54,7 @@ let context;
 let pixelSize;
 
 // Game state
-let gameActive = false;
+let gameState = GAME_STATES.PAUSED;
 
 // Player position
 let posX, posY;
@@ -93,10 +98,28 @@ function startGame() {
   planeX = 0;
   planeY = 1;
 
-  gameActive = true;
+  gameState = GAME_STATES.ACTIVE;
 
   // Start game
   gameLoop();
+}
+
+function pauseGame() {
+  context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  context.fillRect(0, 0, RESOLUTION.WIDTH, RESOLUTION.HEIGHT);
+
+  context.fillStyle = 'rgb(255, 255, 255)';
+  context.fillRect(RESOLUTION.WIDTH / 2 - 50, RESOLUTION.HEIGHT / 2 - 50, 40, 100);
+  context.fillRect(RESOLUTION.WIDTH / 2 + 10, RESOLUTION.HEIGHT / 2 - 50, 40, 100);
+}
+
+function togglePausePlay() {
+  if (gameState === GAME_STATES.ACTIVE) {
+    gameState = GAME_STATES.PAUSED;
+  } else {
+    gameState = GAME_STATES.ACTIVE;
+    gameLoop();
+  }
 }
 
 function gameLoop() {
@@ -200,7 +223,12 @@ function gameLoop() {
 
   frameTime = (time - oldTime) / 1000;
 
-  requestAnimationFrame(gameLoop);
+  if (gameState === GAME_STATES.ACTIVE) {
+    requestAnimationFrame(gameLoop);
+  } else {
+    pauseGame();
+    return;
+  }
 
   moveSpeed = frameTime * 5;
   rotSpeed = frameTime * 3;
@@ -262,22 +290,22 @@ function gameLoop() {
 
 document.addEventListener('keydown', (event) => {
   switch (event.keyCode) {
-    case 37:
+    case 65:
       left = true;
       event.preventDefault();
       event.stopPropagation();
       break;
-    case 39:
+    case 68:
       right = true;
       event.preventDefault();
       event.stopPropagation();
       break;
-    case 38:
+    case 87:
       up = true;
       event.preventDefault();
       event.stopPropagation();
       break;
-    case 40:
+    case 83:
       down = true;
       event.preventDefault();
       event.stopPropagation();
@@ -287,26 +315,30 @@ document.addEventListener('keydown', (event) => {
 
 document.addEventListener('keyup', (event) => {
   switch (event.keyCode) {
-    case 37:
+    case 65:
       left = false;
       event.preventDefault();
       event.stopPropagation();
       break;
-    case 39:
+    case 68:
       right = false;
       event.preventDefault();
       event.stopPropagation();
       break;
-    case 38:
+    case 87:
       up = false;
       event.preventDefault();
       event.stopPropagation();
       break;
-    case 40:
+    case 83:
       down = false;
       event.preventDefault();
       event.stopPropagation();
       break;
+    case 27:
+      togglePausePlay();
+      event.preventDefault();
+      event.stopPropagation();
   }
 });
 
