@@ -6,6 +6,12 @@
 </head>
 <body style="margin: 0; padding: 0;">
   <canvas id="canvas" width="1920" height="1080"></canvas>
-  <script src="src/main.js"></script>
+
+  <script type="module">
+    import Game from './src/game.js';
+
+    let game = new Game();
+    game.start();
+  </script>
 </body>
 </html>

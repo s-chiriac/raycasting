@@ -1,6 +1,21 @@
-export const RESOLUTION = {
+const GAME_STATES = {
+  MENU: 'MENU',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+};
+
+const RESOLUTION = {
   WIDTH: 1920,
   HEIGHT: 1080,
 };
 
-export default { RESOLUTION };
+const MULTIPLIERS = {
+  ROTATION: 3,
+  MOVEMENT: 5,
+};
+
+const DEBUGGING = false;
+
+const CONFIG = { GAME_STATES, RESOLUTION, MULTIPLIERS, DEBUGGING };
+
+export default CONFIG;

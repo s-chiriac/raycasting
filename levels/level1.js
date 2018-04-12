@@ -1,4 +1,6 @@
-export const MAP = [
+import PALETTE from '../src/palette.js';
+
+const MAP = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -25,19 +27,30 @@ export const MAP = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
-export const STARTING_POSITION = {
+const STARTING_POSITION = {
   X: 12,
   Y: 12,
 };
 
-export const STARTING_DIRECTION = {
-  X: -1,
+const STARTING_DIRECTION = {
+  X: 0,
+  Y: -1,
+};
+
+const STARTING_CAMERA = {
+  X: -0.66,
   Y: 0,
 };
 
-export const STARTING_CAMERA = {
-  X: 0,
-  Y: 1,
+const COLORS = {
+  CEILING: PALETTE.BLACK,
+  FLOOR: PALETTE.GREY,
+  WALL_LIGHT: PALETTE.BLUE,
+  WALL_DARK: PALETTE.DARK_BLUE,
+
+  WALL_OUTLINE: PALETTE.WHITE,
 };
 
-export default { MAP, STARTING_POSITION, STARTING_DIRECTION, STARTING_CAMERA };
+const LEVEL_1 = { MAP, STARTING_POSITION, STARTING_DIRECTION, STARTING_CAMERA, COLORS };
+
+export default LEVEL_1;
