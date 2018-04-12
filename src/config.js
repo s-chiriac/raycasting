@@ -9,7 +9,7 @@ const RESOLUTION = {
   HEIGHT: 1080,
 };
 
-const MULTIPLIERS = {
+export const MULTIPLIERS = {
   ROTATION: 3,
   MOVEMENT: 5,
 };

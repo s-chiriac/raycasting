@@ -1,3 +1,4 @@
+import CONSTANTS from './constants.js';
 import PALETTE from './palette.js';
 import CONFIG from './config.js';
 
@@ -11,8 +12,11 @@ export default class Game {
     this.pixelSize = this.canvas.clientWidth / CONFIG.RESOLUTION.WIDTH;
     this.state = CONFIG.GAME_STATES.MENU;
 
-    this.moveSpeed = 0;
-    this.rotSpeed = 0;
+    this.lastFpsUpdateTime = 0;
+    this.lastFpsCount = 0;
+
+    this.time = 0;
+    this.oldTime = 0;
 
     this.player = new Player();
     this.levelManager = new LevelManager();
@@ -55,12 +59,33 @@ export default class Game {
   }
 
   drawPauseScreen() {
-    this.context.fillStyle = PALETTE.TRANSPARENT_BLACK; // 'rgba(0, 0, 0, 0.7)';
+    this.context.fillStyle = PALETTE.TRANSPARENT_BLACK;
     this.context.fillRect(0, 0, CONFIG.RESOLUTION.WIDTH, CONFIG.RESOLUTION.HEIGHT);
 
-    this.context.fillStyle = PALETTE.WHITE; // 'rgb(255, 255, 255)';
+    this.context.fillStyle = PALETTE.WHITE;
     this.context.fillRect(CONFIG.RESOLUTION.WIDTH / 2 - 50, CONFIG.RESOLUTION.HEIGHT / 2 - 50, 40, 100);
     this.context.fillRect(CONFIG.RESOLUTION.WIDTH / 2 + 10, CONFIG.RESOLUTION.HEIGHT / 2 - 50, 40, 100);
+  }
+
+  drawFloorAndCeiling() {
+    // Ceiling
+    this.context.fillStyle = this.levelManager.loadedLevel.COLORS.CEILING;
+    this.context.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight / 2);
+
+    // Floor
+    this.context.fillStyle = this.levelManager.loadedLevel.COLORS.FLOOR;
+    this.context.fillRect(0, this.canvas.clientHeight / 2, this.canvas.clientWidth, this.canvas.clientHeight / 2);
+  }
+
+  drawFpsCounter() {
+    let fpsText = `FPS: ${this.lastFpsCount}`;
+
+    this.context.lineWidth = 4;
+    this.context.font = CONSTANTS.FPS_COUNTER_FONT;
+    this.context.strokeStyle = PALETTE.BLACK;
+    this.context.fillStyle = PALETTE.WHITE;
+    this.context.strokeText(fpsText, 10, 30);
+    this.context.fillText(fpsText, 10, 30);
   }
 
   addGameEventListeners() {
@@ -78,13 +103,7 @@ export default class Game {
     let level = this.levelManager.loadedLevel;
     let player = this.player;
 
-    // Fill top half with a black rectangle
-    this.context.fillStyle = level.COLORS.CEILING;
-    this.context.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight / 2);
-
-    // Fill bottom half with dark grey rectangle
-    this.context.fillStyle = level.COLORS.FLOOR;
-    this.context.fillRect(0, this.canvas.clientHeight / 2, this.canvas.clientWidth, this.canvas.clientHeight / 2);
+    this.drawFloorAndCeiling();
 
     // Loop through every vertical line on the canvas
     for (let x = 0; x < CONFIG.RESOLUTION.WIDTH; x++) {
@@ -112,8 +131,7 @@ export default class Game {
       // General direction the ray is travelling in
       let stepX, stepY;
 
-      // 1 if a wall is hit, 0 otherwise
-      let hit = 0;
+      let isWallHit = false;
 
       // Which side of the wall has been hit (for texturing purposes)
       let side;
@@ -134,7 +152,7 @@ export default class Game {
         sideDistY = (mapY + 1.0 - player.posY) * deltaDistY;
       }
 
-      while (hit === 0) {
+      while (!isWallHit) {
         if (sideDistX < sideDistY) {
           sideDistX += deltaDistX;
           mapX += stepX;
@@ -146,7 +164,7 @@ export default class Game {
         }
 
         if (level.MAP[mapX][mapY] > 0) {
-          hit = 1;
+          isWallHit = true;
         }
       }
 
@@ -181,72 +199,22 @@ export default class Game {
     this.oldTime = this.time;
     this.time = Date.now();
 
-    this.frameTime = (this.time - this.oldTime) / 1000;
+    let frameTime = (this.time - this.oldTime) / 1000;
+
+    if (this.lastFpsUpdateTime === 0 || this.lastFpsUpdateTime + 500 < this.time) {
+      this.lastFpsUpdateTime = this.time;
+      this.lastFpsCount = Math.floor(1 / frameTime);
+    }
+
+    this.drawFpsCounter();
+
+    player.updatePosition(level, frameTime);
+    player.updateDirection(frameTime);
 
     if (this.state === CONFIG.GAME_STATES.ACTIVE) {
       requestAnimationFrame(this.gameLoop.bind(this));
     } else {
       this.drawPauseScreen();
-      return;
-    }
-
-    this.moveSpeed = this.frameTime * 5;
-    this.rotSpeed = this.frameTime * 3;
-
-    let x, y;
-
-    if (player.left) {
-      let oldDirX = player.dirX;
-      let oldPlaneX = player.planeX;
-
-      player.dirX = player.dirX * Math.cos(this.rotSpeed) - player.dirY * Math.sin(this.rotSpeed);
-      player.dirY = oldDirX * Math.sin(this.rotSpeed) + player.dirY * Math.cos(this.rotSpeed);
-
-      player.planeX = player.planeX * Math.cos(this.rotSpeed) - player.planeY * Math.sin(this.rotSpeed);
-      player.planeY = oldPlaneX * Math.sin(this.rotSpeed) + player.planeY * Math.cos(this.rotSpeed);
-    }
-
-    if (player.right) {
-      let oldDirX = player.dirX;
-      let oldPlaneX = player.planeX;
-
-      player.dirX = player.dirX * Math.cos(-this.rotSpeed) - player.dirY * Math.sin(-this.rotSpeed);
-      player.dirY = oldDirX * Math.sin(-this.rotSpeed) + player.dirY * Math.cos(-this.rotSpeed);
-
-      player.planeX = player.planeX * Math.cos(-this.rotSpeed) - player.planeY * Math.sin(-this.rotSpeed);
-      player.planeY = oldPlaneX * Math.sin(-this.rotSpeed) + player.planeY * Math.cos(-this.rotSpeed);
-    }
-
-    if (player.up) {
-      x = Math.floor(player.posX + player.dirX * this.moveSpeed);
-      y = Math.floor(player.posY);
-
-      if (level.MAP[x][y] === 0) {
-        player.posX += player.dirX * this.moveSpeed;
-      }
-
-      x = Math.floor(player.posX);
-      y = Math.floor(player.posY + player.dirY * this.moveSpeed);
-
-      if (level.MAP[x][y] === 0) {
-        player.posY += player.dirY * this.moveSpeed;
-      }
-    }
-
-    if (player.down) {
-      x = Math.floor(player.posX - player.dirX * this.moveSpeed);
-      y = Math.floor(player.posY);
-
-      if (level.MAP[x][y] === 0) {
-        player.posX -= player.dirX * this.moveSpeed;
-      }
-
-      x = Math.floor(player.posX);
-      y = Math.floor(player.posY - player.dirY * this.moveSpeed);
-
-      if (level.MAP[x][y] === 0) {
-        player.posY -= player.dirY * this.moveSpeed;
-      }
     }
   }
 }
