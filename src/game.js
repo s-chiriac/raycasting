@@ -58,6 +58,15 @@ export default class Game {
     }
   }
 
+  drawFrame() {
+    let frameTime = (this.time - this.oldTime) / 1000;
+
+    this.drawFpsCounter(frameTime);
+
+    this.player.updatePosition(this.levelManager.loadedLevel, frameTime);
+    this.player.updateDirection(frameTime);
+  }
+
   drawPauseScreen() {
     this.context.fillStyle = PALETTE.TRANSPARENT_BLACK;
     this.context.fillRect(0, 0, CONFIG.RESOLUTION.WIDTH, CONFIG.RESOLUTION.HEIGHT);
@@ -77,15 +86,36 @@ export default class Game {
     this.context.fillRect(0, this.canvas.clientHeight / 2, this.canvas.clientWidth, this.canvas.clientHeight / 2);
   }
 
-  drawFpsCounter() {
-    let fpsText = `FPS: ${this.lastFpsCount}`;
+  drawLine(lineStartX, lineStartY, height, side) {
+    let level = this.levelManager.loadedLevel;
+
+    if (side === 0) {
+      this.context.fillStyle = level.COLORS.WALL_LIGHT;
+    } else {
+      this.context.fillStyle = level.COLORS.WALL_DARK;
+    }
+
+    this.context.fillRect(lineStartX * this.pixelSize, lineStartY * this.pixelSize, this.pixelSize, height * this.pixelSize);
+
+    if (CONFIG.DEBUGGING) {
+      this.context.strokeStyle = level.COLORS.WALL_OUTLINE;
+      this.context.strokeRect(lineStartX * this.pixelSize, lineStartY * this.pixelSize, this.pixelSize, height * this.pixelSize);
+    }
+  }
+
+  drawFpsCounter(frameTime) {if (this.lastFpsUpdateTime === 0 || this.lastFpsUpdateTime + 500 < this.time) {
+      this.lastFpsUpdateTime = this.time;
+      this.lastFpsCount = Math.floor(1 / frameTime);
+    }
+
+    let fpsCountText = `FPS: ${this.lastFpsCount}`;
 
     this.context.lineWidth = 4;
     this.context.font = CONSTANTS.FPS_COUNTER_FONT;
     this.context.strokeStyle = PALETTE.BLACK;
     this.context.fillStyle = PALETTE.WHITE;
-    this.context.strokeText(fpsText, 10, 30);
-    this.context.fillText(fpsText, 10, 30);
+    this.context.strokeText(fpsCountText, 10, 30);
+    this.context.fillText(fpsCountText, 10, 30);
   }
 
   addGameEventListeners() {
@@ -105,36 +135,25 @@ export default class Game {
 
     this.drawFloorAndCeiling();
 
+    let mapX, mapY, cameraX, rayDirX, rayDirY, deltaDistX, deltaDistY, stepX, stepY, sideDistX, sideDistY;
+    let side, perpWallDist, lineHeight, lineStart, isWallHit;
+
     // Loop through every vertical line on the canvas
     for (let x = 0; x < CONFIG.RESOLUTION.WIDTH; x++) {
+      // Save the square on the map the player is in
+      mapX = Math.floor(player.posX);
+      mapY = Math.floor(player.posY);
 
       // Find the position of the ray we are checking on the camera plane, from -1 to 1
-      let cameraX = 2 * x / CONFIG.RESOLUTION.WIDTH - 1;
+      cameraX = 2 * x / CONFIG.RESOLUTION.WIDTH - 1;
 
       // Calculate ray vector
-      let rayDirX = player.dirX + player.planeX * cameraX;
-      let rayDirY = player.dirY + player.planeY * cameraX;
-
-      // Save the square on the map the player is in
-      let mapX = Math.floor(player.posX);
-      let mapY = Math.floor(player.posY);
-
-      let sideDistX, sideDistY;
+      rayDirX = player.dirX + player.planeX * cameraX;
+      rayDirY = player.dirY + player.planeY * cameraX;
 
       // Distances required for ray to travel from one map square to the next
-      let deltaDistX = Math.sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
-      let deltaDistY = Math.sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
-
-      // Used later to calculate "real" distance to the wall to prevent fisheye effect
-      let perpWallDist;
-
-      // General direction the ray is travelling in
-      let stepX, stepY;
-
-      let isWallHit = false;
-
-      // Which side of the wall has been hit (for texturing purposes)
-      let side;
+      deltaDistX = Math.sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
+      deltaDistY = Math.sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
 
       if (rayDirX < 0) {
         stepX = -1;
@@ -151,6 +170,8 @@ export default class Game {
         stepY = 1;
         sideDistY = (mapY + 1.0 - player.posY) * deltaDistY;
       }
+
+      isWallHit = false;
 
       while (!isWallHit) {
         if (sideDistX < sideDistY) {
@@ -174,42 +195,16 @@ export default class Game {
         perpWallDist = Math.abs((mapY - player.posY + (1 - stepY) / 2) / rayDirY);
       }
 
-      let lineHeight = parseInt(CONFIG.RESOLUTION.HEIGHT / perpWallDist);
+      lineHeight = parseInt(CONFIG.RESOLUTION.HEIGHT / perpWallDist);
+      lineStart = Math.max((CONFIG.RESOLUTION.HEIGHT - lineHeight) / 2, 0);
 
-      let lineStart = (CONFIG.RESOLUTION.HEIGHT - lineHeight) / 2;
-
-      if (lineStart < 0) {
-        lineStart = 0;
-      }
-
-      if (side === 0) {
-        this.context.fillStyle = level.COLORS.WALL_LIGHT;
-      } else {
-        this.context.fillStyle = level.COLORS.WALL_DARK;
-      }
-
-      this.context.fillRect(x * this.pixelSize, lineStart * this.pixelSize, this.pixelSize, lineHeight * this.pixelSize);
-
-      if (CONFIG.DEBUGGING) {
-        this.context.strokeStyle = level.COLORS.WALL_OUTLINE;
-        this.context.strokeRect(x * this.pixelSize, lineStart * this.pixelSize, this.pixelSize, lineHeight * this.pixelSize);
-      }
+      this.drawLine(x, lineStart, lineHeight, side);
     }
 
     this.oldTime = this.time;
     this.time = Date.now();
 
-    let frameTime = (this.time - this.oldTime) / 1000;
-
-    if (this.lastFpsUpdateTime === 0 || this.lastFpsUpdateTime + 500 < this.time) {
-      this.lastFpsUpdateTime = this.time;
-      this.lastFpsCount = Math.floor(1 / frameTime);
-    }
-
-    this.drawFpsCounter();
-
-    player.updatePosition(level, frameTime);
-    player.updateDirection(frameTime);
+    this.drawFrame();
 
     if (this.state === CONFIG.GAME_STATES.ACTIVE) {
       requestAnimationFrame(this.gameLoop.bind(this));
