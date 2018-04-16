@@ -103,7 +103,8 @@ export default class Game {
     }
   }
 
-  drawFpsCounter(frameTime) {if (this.lastFpsUpdateTime === 0 || this.lastFpsUpdateTime + 500 < this.time) {
+  drawFpsCounter(frameTime) {
+    if (this.lastFpsUpdateTime === 0 || this.lastFpsUpdateTime + 500 < this.time) {
       this.lastFpsUpdateTime = this.time;
       this.lastFpsCount = Math.floor(1 / frameTime);
     }
