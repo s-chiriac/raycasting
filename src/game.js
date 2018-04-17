@@ -8,8 +8,11 @@ import LevelManager from './level-manager.js';
 export default class Game {
   constructor() {
     this.canvas = document.getElementById('canvas');
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+
     this.context = this.canvas.getContext('2d');
-    this.pixelSize = this.canvas.clientWidth / CONFIG.RESOLUTION.WIDTH;
+
     this.state = CONFIG.GAME_STATES.MENU;
 
     this.lastFpsUpdateTime = 0;
@@ -74,11 +77,11 @@ export default class Game {
 
   drawPauseScreen() {
     this.context.fillStyle = PALETTE.TRANSPARENT_BLACK;
-    this.context.fillRect(0, 0, CONFIG.RESOLUTION.WIDTH, CONFIG.RESOLUTION.HEIGHT);
+    this.context.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
 
     this.context.fillStyle = PALETTE.WHITE;
-    this.context.fillRect(CONFIG.RESOLUTION.WIDTH / 2 - 50, CONFIG.RESOLUTION.HEIGHT / 2 - 50, 40, 100);
-    this.context.fillRect(CONFIG.RESOLUTION.WIDTH / 2 + 10, CONFIG.RESOLUTION.HEIGHT / 2 - 50, 40, 100);
+    this.context.fillRect(this.canvas.clientWidth / 2 - 50, this.canvas.clientHeight / 2 - 50, 40, 100);
+    this.context.fillRect(this.canvas.clientWidth / 2 + 10, this.canvas.clientHeight / 2 - 50, 40, 100);
   }
 
   drawFloorAndCeiling() {
@@ -100,11 +103,11 @@ export default class Game {
       this.context.fillStyle = level.COLORS.WALL_DARK;
     }
 
-    this.context.fillRect(lineStartX * this.pixelSize, lineStartY * this.pixelSize, this.pixelSize, height * this.pixelSize);
+    this.context.fillRect(lineStartX, lineStartY, 1, height);
 
     if (CONFIG.DEBUGGING) {
       this.context.strokeStyle = level.COLORS.WALL_OUTLINE;
-      this.context.strokeRect(lineStartX * this.pixelSize, lineStartY * this.pixelSize, this.pixelSize, height * this.pixelSize);
+      this.context.strokeRect(lineStartX, lineStartY, 1, height);
     }
   }
 
@@ -124,6 +127,14 @@ export default class Game {
     this.context.fillText(fpsCountText, 10, 30);
   }
 
+  onCanvasClick() {
+    if (document.pointerLockElement === this.canvas) {
+      return;
+    }
+
+    this.canvas.requestPointerLock()
+  }
+
   onPointerLockChange() {
     if (document.pointerLockElement === this.canvas) {
       document.addEventListener("mousemove", this.player.updateDirection.bind(this.player));
@@ -134,9 +145,16 @@ export default class Game {
     this.togglePausePlay();
   }
 
+  onWindowResize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+    this.drawPauseScreen();
+  }
+
   addGameEventListeners() {
-    this.canvas.addEventListener('click', () => this.canvas.requestPointerLock());
+    this.canvas.addEventListener('click', this.onCanvasClick.bind(this));
     document.addEventListener('pointerlockchange', this.onPointerLockChange.bind(this));
+    window.addEventListener('resize', this.onWindowResize.bind(this));
   }
 
   gameLoop() {
@@ -149,13 +167,13 @@ export default class Game {
     let side, perpWallDist, lineHeight, lineStart, isWallHit;
 
     // Loop through every vertical line on the canvas
-    for (let x = 0; x < CONFIG.RESOLUTION.WIDTH; x++) {
+    for (let x = 0; x < this.canvas.clientWidth; x++) {
       // Save the square on the map the player is in
       mapX = Math.floor(player.posX);
       mapY = Math.floor(player.posY);
 
       // Find the position of the ray we are checking on the camera plane, from -1 to 1
-      cameraX = 2 * x / CONFIG.RESOLUTION.WIDTH - 1;
+      cameraX = 2 * x / this.canvas.clientWidth - 1;
 
       // Calculate ray vector
       rayDirX = player.dirX + player.planeX * cameraX;
@@ -205,8 +223,8 @@ export default class Game {
         perpWallDist = Math.abs((mapY - player.posY + (1 - stepY) / 2) / rayDirY);
       }
 
-      lineHeight = parseInt(CONFIG.RESOLUTION.HEIGHT / perpWallDist);
-      lineStart = Math.max((CONFIG.RESOLUTION.HEIGHT - lineHeight) / 2, 0);
+      lineHeight = parseInt(this.canvas.clientHeight / perpWallDist);
+      lineStart = Math.max((this.canvas.clientHeight - lineHeight) / 2, 0);
 
       this.drawLine(x, lineStart, lineHeight, side);
     }
