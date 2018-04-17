@@ -26,9 +26,7 @@ export default class Game {
 
   start() {
     this.handleLevelLoad(1);
-
-    this.player.addPlayerControlListeners();
-    this.gameLoop();
+    this.drawPauseScreen();
   }
 
   handleLevelLoad(levelNumber) {
@@ -45,8 +43,6 @@ export default class Game {
 
     player.planeX = level.STARTING_CAMERA.X;
     player.planeY = level.STARTING_CAMERA.Y;
-
-    this.state = CONFIG.GAME_STATES.ACTIVE;
   }
 
   togglePausePlay() {
@@ -59,13 +55,21 @@ export default class Game {
     }
   }
 
-  drawFrame() {
+  handleNewFrame() {
     let frameTime = (this.time - this.oldTime) / 1000;
 
     this.drawFpsCounter(frameTime);
 
     this.player.updatePosition(this.levelManager.loadedLevel, frameTime);
-    this.player.updateDirection(frameTime);
+  }
+
+  handleStateUpdates() {
+    if (this.state === CONFIG.GAME_STATES.ACTIVE) {
+      requestAnimationFrame(this.gameLoop.bind(this));
+    } else {
+      this.player.removePlayerControlListeners();
+      this.drawPauseScreen();
+    }
   }
 
   drawPauseScreen() {
@@ -120,15 +124,19 @@ export default class Game {
     this.context.fillText(fpsCountText, 10, 30);
   }
 
+  onPointerLockChange() {
+    if (document.pointerLockElement === this.canvas) {
+      document.addEventListener("mousemove", this.player.updateDirection.bind(this.player));
+    } else {
+      document.removeEventListener("mousemove", this.player.updateDirection.bind(this.player));
+    }
+
+    this.togglePausePlay();
+  }
+
   addGameEventListeners() {
-    document.addEventListener('keyup', (event) => {
-      switch (event.keyCode) {
-        case 27:
-          this.togglePausePlay();
-          event.preventDefault();
-          event.stopPropagation();
-      }
-    });
+    this.canvas.addEventListener('click', () => this.canvas.requestPointerLock());
+    document.addEventListener('pointerlockchange', this.onPointerLockChange.bind(this));
   }
 
   gameLoop() {
@@ -206,13 +214,7 @@ export default class Game {
     this.oldTime = this.time;
     this.time = Date.now();
 
-    this.drawFrame();
-
-    if (this.state === CONFIG.GAME_STATES.ACTIVE) {
-      requestAnimationFrame(this.gameLoop.bind(this));
-    } else {
-      this.player.removePlayerControlListeners();
-      this.drawPauseScreen();
-    }
+    this.handleNewFrame();
+    this.handleStateUpdates();
   }
 }

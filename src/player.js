@@ -1,4 +1,4 @@
-import { MULTIPLIERS } from './config.js';
+import { MOVEMENT_MULTIPLIER } from './config.js';
 
 export default class Player {
   constructor() {
@@ -22,7 +22,7 @@ export default class Player {
       return;
     }
 
-    let moveSpeed = frameTime * MULTIPLIERS.MOVEMENT;
+    let moveSpeed = frameTime * MOVEMENT_MULTIPLIER;
 
     if (this.up) {
       let x = Math.floor(this.posX + this.dirX * moveSpeed);
@@ -89,37 +89,20 @@ export default class Player {
     }
   }
 
-  updateDirection(frameTime) {
-    if (!this.left && !this.right) {
-      return;
-    }
-
-    let rotSpeed = frameTime * MULTIPLIERS.ROTATION;
+  updateDirection(mouseMoveEvent) {
+    let rotSpeed = (mouseMoveEvent.movementX / 100);
 
     let oldDirX = this.dirX;
     let oldPlaneX = this.planeX;
 
-    /*if (this.left) {
-      let rotSpeedSin = Math.sin(rotSpeed);
-      let rotSpeedCos = Math.cos(rotSpeed);
+    let rotSpeedSin = Math.sin(-rotSpeed);
+    let rotSpeedCos = Math.cos(-rotSpeed);
 
-      this.dirX = this.dirX * rotSpeedCos - this.dirY * rotSpeedSin;
-      this.dirY = oldDirX * rotSpeedSin + this.dirY * rotSpeedCos;
+    this.dirX = this.dirX * rotSpeedCos - this.dirY * rotSpeedSin;
+    this.dirY = oldDirX * rotSpeedSin + this.dirY * rotSpeedCos;
 
-      this.planeX = this.planeX * rotSpeedCos - this.planeY * rotSpeedSin;
-      this.planeY = oldPlaneX * rotSpeedSin + this.planeY * rotSpeedCos;
-    }*/
-
-    /*if (this.right) {
-      let rotSpeedSin = Math.sin(-rotSpeed);
-      let rotSpeedCos = Math.cos(-rotSpeed);
-
-      this.dirX = this.dirX * rotSpeedCos - this.dirY * rotSpeedSin;
-      this.dirY = oldDirX * rotSpeedSin + this.dirY * rotSpeedCos;
-
-      this.planeX = this.planeX * rotSpeedCos - this.planeY * rotSpeedSin;
-      this.planeY = oldPlaneX * rotSpeedSin + this.planeY * rotSpeedCos;
-    }*/
+    this.planeX = this.planeX * rotSpeedCos - this.planeY * rotSpeedSin;
+    this.planeY = oldPlaneX * rotSpeedSin + this.planeY * rotSpeedCos;
   }
 
   handleKeyDown(event) {
