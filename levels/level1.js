@@ -38,7 +38,7 @@ const STARTING_DIRECTION = {
 };
 
 const STARTING_CAMERA = {
-  X: -0.66,
+  X: -1,
   Y: 0,
 };
 

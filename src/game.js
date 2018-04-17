@@ -27,7 +27,7 @@ export default class Game {
   start() {
     this.handleLevelLoad(1);
 
-    // Start game
+    this.player.addPlayerControlListeners();
     this.gameLoop();
   }
 
@@ -54,6 +54,7 @@ export default class Game {
       this.state = CONFIG.GAME_STATES.PAUSED;
     } else {
       this.state = CONFIG.GAME_STATES.ACTIVE;
+      this.player.addPlayerControlListeners();
       this.gameLoop();
     }
   }
@@ -210,6 +211,7 @@ export default class Game {
     if (this.state === CONFIG.GAME_STATES.ACTIVE) {
       requestAnimationFrame(this.gameLoop.bind(this));
     } else {
+      this.player.removePlayerControlListeners();
       this.drawPauseScreen();
     }
   }
