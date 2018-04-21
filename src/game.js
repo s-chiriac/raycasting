@@ -290,12 +290,10 @@ class Game {
 
   addGameEventListeners() {
     if (bowser.mobile || bowser.tablet) {
-      console.log('mobile');
       document.addEventListener('touchstart', this.onTouchStart.bind(this));
       document.addEventListener('touchmove', this.onTouchMove.bind(this));
       document.addEventListener('touchend', this.onTouchEnd.bind(this));
     } else {
-      console.log('desktop');
       this.canvas.addEventListener('click', this.onCanvasClick.bind(this));
       document.addEventListener('pointerlockchange', this.onPointerLockChange.bind(this));
     }
