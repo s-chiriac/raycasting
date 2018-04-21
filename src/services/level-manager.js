@@ -1,4 +1,4 @@
-import LEVEL_1 from '../levels/level1.js';
+import LEVEL_1 from '../../levels/level1.js';
 
 const LEVEL_LIST = [ LEVEL_1 ];
 

@@ -2,10 +2,8 @@ import { MOVEMENT_MULTIPLIER } from './config.js';
 
 export default class Player {
   constructor() {
-    this.left = false;
-    this.right = false;
-    this.up = false;
-    this.down = false;
+    this.forward = 0;
+    this.sideways = 0;
 
     this.posX = 0;
     this.posY = 0;
@@ -18,79 +16,47 @@ export default class Player {
   }
 
   updatePosition(level, frameTime) {
-    if (!this.up && !this.down && !this.left && !this.right) {
+    if (this.forward === 0 && this.sideways === 0) {
       return;
     }
 
     let moveSpeed = frameTime * MOVEMENT_MULTIPLIER;
 
-    if (this.up) {
-      let x = Math.floor(this.posX + this.dirX * moveSpeed);
+    if (this.forward !== 0) {
+      let x = Math.floor(this.posX + this.dirX * moveSpeed * this.forward);
       let y = Math.floor(this.posY);
 
       if (level.MAP[x][y] === 0) {
-        this.posX += this.dirX * moveSpeed;
+        this.posX += this.dirX * moveSpeed * this.forward;
       }
 
       x = Math.floor(this.posX);
-      y = Math.floor(this.posY + this.dirY * moveSpeed);
+      y = Math.floor(this.posY + this.dirY * moveSpeed * this.forward);
 
       if (level.MAP[x][y] === 0) {
-        this.posY += this.dirY * moveSpeed;
+        this.posY += this.dirY * moveSpeed * this.forward;
       }
     }
 
-    if (this.down) {
-      let x = Math.floor(this.posX - this.dirX * moveSpeed);
+    if (this.sideways !== 0) {
+      let x = Math.floor(this.posX + this.dirY * moveSpeed * this.sideways);
       let y = Math.floor(this.posY);
 
       if (level.MAP[x][y] === 0) {
-        this.posX -= this.dirX * moveSpeed;
+        this.posX += this.dirY * moveSpeed * this.sideways;
       }
 
       x = Math.floor(this.posX);
-      y = Math.floor(this.posY - this.dirY * moveSpeed);
+      y = Math.floor(this.posY - this.dirX * moveSpeed * this.sideways);
 
       if (level.MAP[x][y] === 0) {
-        this.posY -= this.dirY * moveSpeed;
-      }
-    }
-
-    if (this.left) {
-      let x = Math.floor(this.posX - this.dirY * moveSpeed);
-      let y = Math.floor(this.posY);
-
-      if (level.MAP[x][y] === 0) {
-        this.posX -= this.dirY * moveSpeed;
-      }
-
-      x = Math.floor(this.posX);
-      y = Math.floor(this.posY + this.dirX * moveSpeed);
-
-      if (level.MAP[x][y] === 0) {
-        this.posY += this.dirX * moveSpeed;
-      }
-    }
-
-    if (this.right) {
-      let x = Math.floor(this.posX + this.dirY * moveSpeed);
-      let y = Math.floor(this.posY);
-
-      if (level.MAP[x][y] === 0) {
-        this.posX += this.dirY * moveSpeed;
-      }
-
-      x = Math.floor(this.posX);
-      y = Math.floor(this.posY - this.dirX * moveSpeed);
-
-      if (level.MAP[x][y] === 0) {
-        this.posY -= this.dirX * moveSpeed;
+        this.posY -= this.dirX * moveSpeed * this.sideways;
       }
     }
   }
 
   updateDirection(mouseMoveEvent) {
-    let rotSpeed = (mouseMoveEvent.movementX / 100);
+    let rotSpeed = (mouseMoveEvent.movementX / 300);
 
     let oldDirX = this.dirX;
     let oldPlaneX = this.planeX;
@@ -108,22 +74,22 @@ export default class Player {
   handleKeyDown(event) {
     switch (event.keyCode) {
       case 65:
-        this.left = true;
+        this.sideways = -1;
         event.preventDefault();
         event.stopPropagation();
         break;
       case 68:
-        this.right = true;
+        this.sideways = 1;
         event.preventDefault();
         event.stopPropagation();
         break;
       case 87:
-        this.up = true;
+        this.forward = 1;
         event.preventDefault();
         event.stopPropagation();
         break;
       case 83:
-        this.down = true;
+        this.forward = -1;
         event.preventDefault();
         event.stopPropagation();
         break;
@@ -133,22 +99,14 @@ export default class Player {
   handleKeyUp(event) {
     switch (event.keyCode) {
       case 65:
-        this.left = false;
-        event.preventDefault();
-        event.stopPropagation();
-        break;
       case 68:
-        this.right = false;
-        event.preventDefault();
-        event.stopPropagation();
-        break;
-      case 87:
-        this.up = false;
+        this.sideways = 0;
         event.preventDefault();
         event.stopPropagation();
         break;
       case 83:
-        this.down = false;
+      case 87:
+        this.forward = 0;
         event.preventDefault();
         event.stopPropagation();
         break;
