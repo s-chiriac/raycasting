@@ -346,6 +346,9 @@ class Game {
   }
 
   onTouchStart(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (this.state === __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
       let touches = event.changedTouches;
 
@@ -364,6 +367,9 @@ class Game {
   }
 
   onTouchMove(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (this.state === __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
       let touches = event.changedTouches;
 
@@ -397,6 +403,9 @@ class Game {
   }
 
   onTouchEnd(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (this.state !== __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
       this.togglePausePlay();
     } else {
