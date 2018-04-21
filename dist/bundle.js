@@ -181,8 +181,8 @@ class Game {
   }
 
   createJoystick() {
-    let outerJoystick = new Image();
-    let innerJoystick = new Image();
+    let outerJoystick = document.createElement('img');
+    let innerJoystick = document.createElement('img');
 
     outerJoystick.src = '/assets/controls/joystick_outer.png';
     innerJoystick.src = '/assets/controls/joystick_inner.png';
