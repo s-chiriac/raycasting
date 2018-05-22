@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -94,6 +94,30 @@ const PALETTE = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+// CONTROLS
+const JOYSTICK = {
+  OUTER: '/assets/controls/joystick_outer.png',
+  INNER: '/assets/controls/joystick_inner.png',
+};
+
+// ENEMIES
+const MOBSTER = {
+  MOVING: '/assets/enemies/mobster/mobster.png',
+  SHOOTING: '/assets/enemies/mobster/mobster_shooting.png',
+  WIDTH: 64,
+  HEIGHT: 128,
+};
+
+const TEXTURES = { JOYSTICK, MOBSTER };
+
+/* harmony default export */ __webpack_exports__["a"] = (TEXTURES);
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 const GAME_STATES = {
   MENU: 'MENU',
   ACTIVE: 'ACTIVE',
@@ -112,18 +136,20 @@ const CONFIG = { GAME_STATES, MOVEMENT_MULTIPLIER, DEBUGGING };
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_bowser__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_bowser__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_bowser___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_bowser__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants_js__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__palette_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__config_js__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__player_js__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__services_level_manager_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__textures_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__config_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__player_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__services_level_manager_js__ = __webpack_require__(8);
+
 
 
 
@@ -138,7 +164,9 @@ class Game {
     this.canvas = document.getElementById('canvas');
     this.context = this.canvas.getContext('2d');
 
-    this.state = __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.MENU;
+    this.zBuffer = [];
+
+    this.state = __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.MENU;
     this.dirTouchX = 0;
 
     this.lastFpsUpdateTime = 0;
@@ -147,8 +175,8 @@ class Game {
     this.time = 0;
     this.oldTime = 0;
 
-    this.player = new __WEBPACK_IMPORTED_MODULE_4__player_js__["a" /* default */]();
-    this.levelManager = new __WEBPACK_IMPORTED_MODULE_5__services_level_manager_js__["a" /* default */]();
+    this.player = new __WEBPACK_IMPORTED_MODULE_5__player_js__["a" /* default */]();
+    this.levelManager = new __WEBPACK_IMPORTED_MODULE_6__services_level_manager_js__["a" /* default */]();
 
     if (__WEBPACK_IMPORTED_MODULE_0_bowser___default.a.mobile || __WEBPACK_IMPORTED_MODULE_0_bowser___default.a.tablet) {
       this.createJoystick();
@@ -184,8 +212,8 @@ class Game {
     let outerJoystick = new Image();
     let innerJoystick = new Image();
 
-    outerJoystick.src = 'assets/controls/joystick_outer.png';
-    innerJoystick.src = 'assets/controls/joystick_inner.png';
+    outerJoystick.src = __WEBPACK_IMPORTED_MODULE_3__textures_js__["a" /* default */].JOYSTICK.OUTER;
+    innerJoystick.src = __WEBPACK_IMPORTED_MODULE_3__textures_js__["a" /* default */].JOYSTICK.INNER;
 
     this.joystick = {
       outer: {
@@ -223,10 +251,10 @@ class Game {
   }
 
   togglePausePlay() {
-    if (this.state === __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
-      this.state = __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.PAUSED;
+    if (this.state === __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
+      this.state = __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.PAUSED;
     } else {
-      this.state = __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE;
+      this.state = __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.ACTIVE;
       this.player.addPlayerControlListeners();
       this.gameLoop();
     }
@@ -249,7 +277,7 @@ class Game {
   }
 
   handleStateUpdates() {
-    if (this.state === __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
+    if (this.state === __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
       requestAnimationFrame(this.gameLoop.bind(this));
     } else {
       this.player.removePlayerControlListeners();
@@ -287,7 +315,7 @@ class Game {
 
     this.context.fillRect(lineStartX, lineStartY, 1, height);
 
-    if (__WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].DEBUGGING) {
+    if (__WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].DEBUGGING) {
       this.context.strokeStyle = level.COLORS.WALL_OUTLINE;
       this.context.strokeRect(lineStartX, lineStartY, 1, height);
     }
@@ -309,6 +337,61 @@ class Game {
     this.context.fillStyle = __WEBPACK_IMPORTED_MODULE_2__palette_js__["a" /* default */].WHITE;
     this.context.strokeText(fpsCountText, 10, 30);
     this.context.fillText(fpsCountText, 10, 30);
+  }
+
+  drawEnemies() {
+    let player = this.player;
+    let enemies = this.levelManager.loadedLevel.ENEMIES;
+
+    let canvasW = this.canvas.clientWidth;
+    let canvasH = this.canvas.clientHeight;
+
+    enemies.forEach((enemy) => {
+      enemy.distance = ((player.posX - enemy.x) * (player.posX - enemy.x) + (player.posY - enemy.y) * (player.posY - enemy.y));
+    });
+
+    enemies.sort((a, b) => b.distance - a.distance);
+
+    enemies.forEach((enemy) => {
+      let enemyX = enemy.x - player.posX;
+      let enemyY = enemy.y - player.posY;
+
+      let invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
+
+      let transformX = invDet * (player.dirY * enemyX - player.dirX * enemyY);
+      let transformY = invDet * (-player.planeY * enemyX + player.planeX * enemyY);
+
+      let enemyScreenX = parseInt((canvasW / 2) * (1 + transformX / transformY));
+      let enemyWidth = Math.abs(parseInt(canvasH / (transformY)));
+      let enemyHeight = Math.abs(parseInt(canvasH / (transformY)));
+
+      let drawStartY = -enemyHeight / 2 + canvasH / 2;
+      let drawEndY = enemyHeight / 2 + canvasH / 2;
+
+      let drawStartX = -enemyWidth / 2 + enemyScreenX;
+      let drawEndX = enemyWidth / 2 + enemyScreenX;
+
+      if (drawStartY < 0) {
+        drawStartY = 0;
+      }
+      if (drawEndY >= canvasH) {
+        drawEndY = canvasH - 1;
+      }
+      if (drawStartX < 0) {
+        drawStartX = 0;
+      }
+      if (drawEndX >= canvasW) {
+        drawEndX = canvasW - 1;
+      }
+
+      for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
+        if(transformY > 0 && stripe > 0 && stripe < canvasW && transformY < this.zBuffer[stripe]) {
+          this.context.drawImage(enemy.texture, stripe - drawStartX, 0, drawEndX - stripe, enemyHeight, stripe, drawStartY, drawEndX - stripe, enemyHeight);
+        }
+      }
+    });
+
+    this.zBuffer = [];
   }
 
   drawJoystick() {
@@ -349,7 +432,7 @@ class Game {
     event.preventDefault();
     event.stopPropagation();
 
-    if (this.state === __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
+    if (this.state === __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
       let touches = event.changedTouches;
 
       for (let i = 0; i < touches.length; i++) {
@@ -370,7 +453,7 @@ class Game {
     event.preventDefault();
     event.stopPropagation();
 
-    if (this.state === __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
+    if (this.state === __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
       let touches = event.changedTouches;
 
       for (let i = 0; i < touches.length; i++) {
@@ -406,7 +489,7 @@ class Game {
     event.preventDefault();
     event.stopPropagation();
 
-    if (this.state !== __WEBPACK_IMPORTED_MODULE_3__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
+    if (this.state !== __WEBPACK_IMPORTED_MODULE_4__config_js__["b" /* default */].GAME_STATES.ACTIVE) {
       this.togglePausePlay();
     } else {
       let touches = event.changedTouches;
@@ -502,11 +585,15 @@ class Game {
         perpWallDist = Math.abs((mapY - player.posY + (1 - stepY) / 2) / rayDirY);
       }
 
+      this.zBuffer.push(perpWallDist);
+
       lineHeight = parseInt(this.canvas.height / perpWallDist);
       lineStart = Math.max((this.canvas.height - lineHeight) / 2, 0);
 
       this.drawLine(x, lineStart, lineHeight, side);
     }
+
+    this.drawEnemies();
 
     this.oldTime = this.time;
     this.time = Date.now();
@@ -520,7 +607,7 @@ class Game {
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -531,7 +618,7 @@ class Game {
 
 !function (root, name, definition) {
   if (typeof module != 'undefined' && module.exports) module.exports = definition()
-  else if (true) __webpack_require__(4)(name, definition)
+  else if (true) __webpack_require__(5)(name, definition)
   else root[name] = definition()
 }(this, 'bowser', function () {
   /**
@@ -1146,7 +1233,7 @@ class Game {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports) {
 
 module.exports = function() {
@@ -1155,7 +1242,7 @@ module.exports = function() {
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1167,11 +1254,11 @@ const CONSTANTS = { FPS_COUNTER_FONT };
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__config_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__config_js__ = __webpack_require__(2);
 
 
 class Player {
@@ -1302,11 +1389,13 @@ class Player {
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__levels_level1_js__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__levels_level1_js__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__enemy_js__ = __webpack_require__(10);
+
 
 
 const LEVEL_LIST = [ __WEBPACK_IMPORTED_MODULE_0__levels_level1_js__["a" /* default */] ];
@@ -1315,6 +1404,7 @@ class LevelManager {
   constructor() {
     this.loadedLevel = null;
     this.currentLevelNumber = 0;
+    this.enemies = [];
   }
 
   loadNextLevel() {
@@ -1328,6 +1418,14 @@ class LevelManager {
 
     this.loadedLevel = LEVEL_LIST[levelNumber - 1];
     this.currentLevelNumber = levelNumber;
+
+    this.loadEnemies();
+  }
+
+  loadEnemies() {
+    this.loadedLevel.ENEMIES.forEach((enemy) => {
+      this.enemies.push(new __WEBPACK_IMPORTED_MODULE_1__enemy_js__["a" /* default */](enemy.X, enemy.Y, enemy.TEXTURE, enemy.WIDTH, enemy.HEIGHT));
+    });
   }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = LevelManager;
@@ -1335,35 +1433,37 @@ class LevelManager {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_palette_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_textures_js__ = __webpack_require__(1);
+
 
 
 const MAP = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -1393,9 +1493,57 @@ const COLORS = {
   WALL_OUTLINE: __WEBPACK_IMPORTED_MODULE_0__src_palette_js__["a" /* default */].WHITE,
 };
 
-const LEVEL_1 = { MAP, STARTING_POSITION, STARTING_DIRECTION, STARTING_CAMERA, COLORS };
+const ENEMIES = [
+  {
+    X: 10,
+    Y: 10,
+    TEXTURE: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER,
+    WIDTH: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER.WIDTH,
+    HEIGHT: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER.HEIGHT,
+  }
+];
+
+const LEVEL_1 = { MAP, STARTING_POSITION, STARTING_DIRECTION, STARTING_CAMERA, COLORS, ENEMIES };
 
 /* harmony default export */ __webpack_exports__["a"] = (LEVEL_1);
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sprite_js__ = __webpack_require__(11);
+
+
+class Enemy extends __WEBPACK_IMPORTED_MODULE_0__sprite_js__["a" /* default */] {
+  constructor(x, y, texture, width, height) {
+    super(x, y, texture);
+
+    this.width = width;
+    this.height = height;
+    this.distance = 0;
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Enemy;
+
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+class Sprite {
+  constructor(x, y, texture) {
+    this.x = x;
+    this.y = y;
+    this.texture = new Image();
+    this.texture.src = texture;
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Sprite;
+
 
 
 /***/ })

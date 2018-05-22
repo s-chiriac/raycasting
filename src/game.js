@@ -2,6 +2,7 @@ import bowser from 'bowser';
 
 import CONSTANTS from './constants.js';
 import PALETTE from './palette.js';
+import TEXTURES from './textures.js';
 import CONFIG from './config.js';
 
 import Player from './player.js';
@@ -11,6 +12,8 @@ class Game {
   constructor() {
     this.canvas = document.getElementById('canvas');
     this.context = this.canvas.getContext('2d');
+
+    this.zBuffer = [];
 
     this.state = CONFIG.GAME_STATES.MENU;
     this.dirTouchX = 0;
@@ -58,8 +61,8 @@ class Game {
     let outerJoystick = new Image();
     let innerJoystick = new Image();
 
-    outerJoystick.src = 'assets/controls/joystick_outer.png';
-    innerJoystick.src = 'assets/controls/joystick_inner.png';
+    outerJoystick.src = TEXTURES.JOYSTICK.OUTER;
+    innerJoystick.src = TEXTURES.JOYSTICK.INNER;
 
     this.joystick = {
       outer: {
@@ -183,6 +186,64 @@ class Game {
     this.context.fillStyle = PALETTE.WHITE;
     this.context.strokeText(fpsCountText, 10, 30);
     this.context.fillText(fpsCountText, 10, 30);
+  }
+
+  drawEnemies() {
+    let player = this.player;
+    let enemies = this.levelManager.enemies;
+
+    let canvasW = this.canvas.clientWidth;
+    let canvasH = this.canvas.clientHeight;
+
+    enemies.forEach((enemy) => {
+      enemy.distance = ((player.posX - enemy.x) * (player.posX - enemy.x) + (player.posY - enemy.y) * (player.posY - enemy.y));
+    });
+
+    enemies.sort((a, b) => b.distance - a.distance);
+
+    enemies.forEach((enemy) => {
+      let enemyX = enemy.x - player.posX;
+      let enemyY = enemy.y - player.posY;
+
+      let invDet = 1.0 / (player.planeX * player.dirY - player.dirX * player.planeY);
+
+      let transformX = invDet * (player.dirY * enemyX - player.dirX * enemyY);
+      let transformY = invDet * (-player.planeY * enemyX + player.planeX * enemyY);
+
+      let enemyScreenX = parseInt((canvasW / 2) * (1 + transformX / transformY));
+      let enemyHeight = Math.abs(parseInt((canvasH / transformY)));
+      let enemyWidth = enemyHeight / 2;
+
+      let drawStartX = Math.floor(-enemyWidth / 2 + enemyScreenX);
+      let drawStartY = Math.floor(-enemyHeight / 2 + canvasH / 2);
+
+      let drawEndX = Math.floor(enemyWidth / 2 + enemyScreenX);
+
+      let startStripe = -1;
+      let endStripe = -1;
+
+      for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
+        if (transformY > 0 && stripe > 0 && stripe < canvasW && transformY < this.zBuffer[stripe]) {
+          startStripe = stripe;
+          break;
+        }
+      }
+
+      for (let stripe = drawEndX; stripe > drawStartX; stripe--) {
+        if (transformY > 0 && stripe > 0 && stripe < canvasW && transformY < this.zBuffer[stripe]) {
+          endStripe = stripe;
+          break;
+        }
+      }
+
+      let imageWidth = ((endStripe - startStripe) / (drawEndX - drawStartX));
+
+      if (startStripe !== -1 && endStripe !== -1) {
+        this.context.drawImage(enemy.texture, ((startStripe - drawStartX) / (drawEndX - drawStartX) * 64) + ((enemy.frame - 1) * 64), 0, imageWidth * 64, 128, startStripe, drawStartY, enemyWidth * imageWidth, enemyHeight);
+      }
+    });
+
+    this.zBuffer = [];
   }
 
   drawJoystick() {
@@ -376,11 +437,15 @@ class Game {
         perpWallDist = Math.abs((mapY - player.posY + (1 - stepY) / 2) / rayDirY);
       }
 
+      this.zBuffer.push(perpWallDist);
+
       lineHeight = parseInt(this.canvas.height / perpWallDist);
       lineStart = Math.max((this.canvas.height - lineHeight) / 2, 0);
 
       this.drawLine(x, lineStart, lineHeight, side);
     }
+
+    this.drawEnemies();
 
     this.oldTime = this.time;
     this.time = Date.now();
