@@ -1499,7 +1499,7 @@ const COLORS = {
 const ENEMIES = [
   {
     X: 12,
-    Y: 10,
+    Y: 9,
     TEXTURE: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER,
     WIDTH: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER.WIDTH,
     HEIGHT: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER.HEIGHT,
