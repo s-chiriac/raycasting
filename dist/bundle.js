@@ -96,14 +96,14 @@ const PALETTE = {
 "use strict";
 // CONTROLS
 const JOYSTICK = {
-  OUTER: '/assets/controls/joystick_outer.png',
-  INNER: '/assets/controls/joystick_inner.png',
+  OUTER: 'assets/controls/joystick_outer.png',
+  INNER: 'assets/controls/joystick_inner.png',
 };
 
 // ENEMIES
 const MOBSTER = {
-  MOVING: '/assets/enemies/mobster/mobster.png',
-  SHOOTING: '/assets/enemies/mobster/mobster_shooting.png',
+  MOVING: 'assets/enemies/mobster/mobster.png',
+  SHOOTING: 'assets/enemies/mobster/mobster_shooting.png',
   WIDTH: 64,
   HEIGHT: 128,
 };
@@ -341,7 +341,7 @@ class Game {
 
   drawEnemies() {
     let player = this.player;
-    let enemies = this.levelManager.loadedLevel.ENEMIES;
+    let enemies = this.levelManager.enemies;
 
     let canvasW = this.canvas.clientWidth;
     let canvasH = this.canvas.clientHeight;
@@ -362,32 +362,35 @@ class Game {
       let transformY = invDet * (-player.planeY * enemyX + player.planeX * enemyY);
 
       let enemyScreenX = parseInt((canvasW / 2) * (1 + transformX / transformY));
-      let enemyWidth = Math.abs(parseInt(canvasH / (transformY)));
-      let enemyHeight = Math.abs(parseInt(canvasH / (transformY)));
+      let enemyHeight = Math.abs(parseInt((canvasH / transformY)));
+      let enemyWidth = enemyHeight / 2;
 
-      let drawStartY = -enemyHeight / 2 + canvasH / 2;
-      let drawEndY = enemyHeight / 2 + canvasH / 2;
+      let drawStartX = Math.floor(-enemyWidth / 2 + enemyScreenX);
+      let drawStartY = Math.floor(-enemyHeight / 2 + canvasH / 2);
 
-      let drawStartX = -enemyWidth / 2 + enemyScreenX;
-      let drawEndX = enemyWidth / 2 + enemyScreenX;
+      let drawEndX = Math.floor(enemyWidth / 2 + enemyScreenX);
 
-      if (drawStartY < 0) {
-        drawStartY = 0;
-      }
-      if (drawEndY >= canvasH) {
-        drawEndY = canvasH - 1;
-      }
-      if (drawStartX < 0) {
-        drawStartX = 0;
-      }
-      if (drawEndX >= canvasW) {
-        drawEndX = canvasW - 1;
-      }
+      let startStripe = -1;
+      let endStripe = -1;
 
       for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
-        if(transformY > 0 && stripe > 0 && stripe < canvasW && transformY < this.zBuffer[stripe]) {
-          this.context.drawImage(enemy.texture, stripe - drawStartX, 0, drawEndX - stripe, enemyHeight, stripe, drawStartY, drawEndX - stripe, enemyHeight);
+        if (transformY > 0 && stripe > 0 && stripe < canvasW && transformY < this.zBuffer[stripe]) {
+          startStripe = stripe;
+          break;
         }
+      }
+
+      for (let stripe = drawEndX; stripe > drawStartX; stripe--) {
+        if (transformY > 0 && stripe > 0 && stripe < canvasW && transformY < this.zBuffer[stripe]) {
+          endStripe = stripe;
+          break;
+        }
+      }
+
+      let imageWidth = ((endStripe - startStripe) / (drawEndX - drawStartX));
+
+      if (startStripe !== -1 && endStripe !== -1) {
+        this.context.drawImage(enemy.texture, ((startStripe - drawStartX) / (drawEndX - drawStartX) * 64) + ((enemy.frame - 1) * 64), 0, imageWidth * 64, 128, startStripe, drawStartY, enemyWidth * imageWidth, enemyHeight);
       }
     });
 
@@ -1424,7 +1427,7 @@ class LevelManager {
 
   loadEnemies() {
     this.loadedLevel.ENEMIES.forEach((enemy) => {
-      this.enemies.push(new __WEBPACK_IMPORTED_MODULE_1__enemy_js__["a" /* default */](enemy.X, enemy.Y, enemy.TEXTURE, enemy.WIDTH, enemy.HEIGHT));
+      this.enemies.push(new __WEBPACK_IMPORTED_MODULE_1__enemy_js__["a" /* default */](enemy.X, enemy.Y, enemy.TEXTURE.SHOOTING, enemy.WIDTH, enemy.HEIGHT));
     });
   }
 }
@@ -1445,33 +1448,33 @@ class LevelManager {
 const MAP = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
 const STARTING_POSITION = {
   X: 12,
-  Y: 12,
+  Y: 11,
 };
 
 const STARTING_DIRECTION = {
@@ -1495,7 +1498,7 @@ const COLORS = {
 
 const ENEMIES = [
   {
-    X: 10,
+    X: 12,
     Y: 10,
     TEXTURE: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER,
     WIDTH: __WEBPACK_IMPORTED_MODULE_1__src_textures_js__["a" /* default */].MOBSTER.WIDTH,
@@ -1523,6 +1526,19 @@ class Enemy extends __WEBPACK_IMPORTED_MODULE_0__sprite_js__["a" /* default */] 
     this.width = width;
     this.height = height;
     this.distance = 0;
+
+    this.totalFrames = 9;
+    this.frame = 1;
+
+    setInterval(this.nextFrame.bind(this), 200);
+  }
+
+  nextFrame() {
+    if (this.frame < this.totalFrames) {
+      this.frame ++;
+    } else {
+      this.frame = 1;
+    }
   }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = Enemy;
