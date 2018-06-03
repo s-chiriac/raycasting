@@ -286,7 +286,7 @@ class Game {
   }
 
   drawPauseScreen() {
-    this.context.fillStyle = __WEBPACK_IMPORTED_MODULE_2__palette_js__["a" /* default */].TRANSPARENT_BLACK;
+    this.context.fillStyle = __WEBPACK_IMPORTED_MODULE_2__palette_js__["a" /* default */].DARK_BLUE;
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.context.fillStyle = __WEBPACK_IMPORTED_MODULE_2__palette_js__["a" /* default */].WHITE;
