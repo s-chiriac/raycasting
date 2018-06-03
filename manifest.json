@@ -7,7 +7,7 @@
   "display": "standalone",
   "orientation": "landscape",
   "Scope": "/",
-  "start_url": "/",
+  "start_url": "/raycasting/index.html",
   "icons": [
     {
       "src": "assets/webapp/icons/icon-72x72.png",
