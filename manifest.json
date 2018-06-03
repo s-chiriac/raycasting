@@ -4,7 +4,7 @@
   "short_name": "Raycasting",
   "theme_color": "#213cf3",
   "background_color": "#2196f3",
-  "display": "standalone",
+  "display": "browser",
   "orientation": "landscape",
   "Scope": "/",
   "start_url": "/raycasting/index.html",
