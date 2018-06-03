@@ -135,7 +135,7 @@ class Game {
   }
 
   drawPauseScreen() {
-    this.context.fillStyle = PALETTE.TRANSPARENT_BLACK;
+    this.context.fillStyle = PALETTE.DARK_BLUE;
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.context.fillStyle = PALETTE.WHITE;
